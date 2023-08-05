@@ -63,7 +63,7 @@ const headers = {
 };
 
 app.get('/', (req, res) => {
-  res.render('index', { tableData });
+  res.render('index');
 });
 
 app.post('/add', (req, res) => {
