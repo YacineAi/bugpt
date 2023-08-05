@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs');
+const axios = require('axios');
 const app = express();
 const { createClient } = require('@supabase/supabase-js');
 const supabase = createClient(process.env.SB_URL, process.env.SB_KEY, { auth: { persistSession: false} });
