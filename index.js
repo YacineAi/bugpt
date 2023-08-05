@@ -56,7 +56,7 @@ const getoken = async () => {
 
 const createHeaders = async () => {
   const token = await getoken();
-  
+  console.log(`using : ${token}`)
   const headers = {
     'accept-encoding': 'gzip',
     'authorization': `Bearer ${token}`,
@@ -73,29 +73,8 @@ app.get('/', (req, res) => {
   res.render('index');
 });
 
-app.post('/add', (req, res) => {
-  const newRowData = req.body;
-  const tableData = loadTableData();
-  tableData.push(newRowData);
-  saveTableData(tableData);
-  res.json({ success: true, newRowData });
-});
-
-app.post('/remove/:index', (req, res) => {
-  const { index } = req.params;
-  const tableData = loadTableData();
-  if (index >= 0 && index < tableData.length) {
-    tableData.splice(index, 1);
-    saveTableData(tableData);
-    res.json({ success: true });
-  } else {
-    res.json({ success: false, message: 'Invalid index' });
-  }
-});
-
 app.post('/openai/chat', async (req, res) => {
   const headers = await createHeaders();
-  console.log(req.body)
   const response = await axios.post('https://api.openai.com/v1/chat/completions', req.body, { headers });
   res.json(response.data);
 });
