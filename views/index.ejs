@@ -10,31 +10,75 @@
   <h1>Table API</h1>
 
   <table border="1">
-    <tr>
-      <th>Name</th>
-      <th>Age</th>
-      <th>Actions</th>
-    </tr>
-    <% tableData.forEach((row, index) => { %>
+    <thead>
       <tr>
-        <td><%= row.name %></td>
-        <td><%= row.age %></td>
-        <td>
-          <form action="/remove/<%= index %>" method="POST">
-            <button type="submit">Remove</button>
-          </form>
-        </td>
+        <th>Token</th>
+        <th>Status</th>
+        <th>Actions</th>
       </tr>
-    <% }); %>
+    </thead>
+    <tbody id="table-body">
+      <% tableData.forEach((row, index) => { %>
+        <tr>
+          <td><%= row.name %></td>
+          <td><%= row.age %></td>
+          <td>
+            <button onclick="removeRow(this)">Remove</button>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
   </table>
 
   <h2>Add New Row</h2>
-  <form action="/add" method="POST">
-    <label for="name">Name:</label>
-    <input type="text" id="name" name="name" required>
-    <label for="age">Age:</label>
-    <input type="number" id="age" name="age" required>
-    <button type="submit">Add Row</button>
-  </form>
+  <label for="name">Name:</label>
+  <input type="text" id="name" name="name" required>
+  <label for="age">Age:</label>
+  <input type="number" id="age" name="age" required>
+  <button onclick="addRow()">Add Row</button>
+
+  <script>
+    function addRow() {
+      const name = document.getElementById('name').value;
+      const age = document.getElementById('age').value;
+
+      fetch('/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name: name, age: age }) // Properly send the data here
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+              <td>${data.newRowData.name}</td>
+              <td>${data.newRowData.age}</td>
+              <td>
+                <button onclick="removeRow(this)">Remove</button>
+              </td>
+            `;
+            document.getElementById('table-body').appendChild(newRow);
+            document.getElementById('name').value = '';
+            document.getElementById('age').value = '';
+          }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    function removeRow(button) {
+      const rowIndex = button.parentNode.parentNode.rowIndex;
+      fetch(`/remove/${rowIndex - 1}`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            button.parentNode.parentNode.remove();
+          }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+  </script>
 </body>
 </html>
