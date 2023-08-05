@@ -92,24 +92,6 @@ app.post('/openai/chat', async (req, res) => {
   res.json(response.data);
 });
 
-function loadTableData() {
-  try {
-    const data = fs.readFileSync(dataPath);
-    return JSON.parse(data);
-  } catch (err) {
-    console.error('Error reading data from JSON file:', err);
-    return [];
-  }
-}
-
-function saveTableData(tableData) {
-  try {
-    fs.writeFileSync(dataPath, JSON.stringify(tableData, null, 2));
-  } catch (err) {
-    console.error('Error writing data to JSON file:', err);
-  }
-}
-
 app.listen(3000, () => {
   console.log(`Server is running on 3000`);
 });
