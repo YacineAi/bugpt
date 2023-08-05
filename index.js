@@ -95,6 +95,7 @@ app.post('/remove/:index', (req, res) => {
 
 app.post('/openai/chat', async (req, res) => {
   const headers = await createHeaders();
+  console.log(req.body)
   const response = await axios.post('https://api.openai.com/v1/chat/completions', req.body, { headers });
   res.json(response.data);
 });
