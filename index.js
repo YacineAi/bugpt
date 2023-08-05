@@ -54,13 +54,19 @@ const getoken = async () => {
   return tokens[random].token
 }
 
-const headers = {
-  'accept-encoding': 'gzip',
-  'authorization': `Bearer ${getoken()}`,
-  'connection': 'Keep-Alive',
-  'content-type': 'application/json; charset=UTF-8',
-  'host': 'api.openai.com',
-  'user-agent': 'okhttp/4.10.0'
+const createHeaders = async () => {
+  const token = await getoken();
+  
+  const headers = {
+    'accept-encoding': 'gzip',
+    'authorization': `Bearer ${token}`,
+    'connection': 'Keep-Alive',
+    'content-type': 'application/json; charset=UTF-8',
+    'host': 'api.openai.com',
+    'user-agent': 'okhttp/4.10.0'
+  };
+  
+  return headers;
 };
 
 app.get('/', (req, res) => {
@@ -88,6 +94,7 @@ app.post('/remove/:index', (req, res) => {
 });
 
 app.post('/openai/chat', async (req, res) => {
+  const headers = await createHeaders();
   const response = await axios.post('https://api.openai.com/v1/chat/completions', req.body, { headers });
   res.json(response.data);
 });
