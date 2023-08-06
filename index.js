@@ -74,9 +74,13 @@ app.get('/', (req, res) => {
 });
 
 app.post('/openai/chat', async (req, res) => {
-  const headers = await createHeaders();
-  const response = await axios.post('https://api.openai.com/v1/chat/completions', req.body, { headers });
-  res.json(response.data);
+  try {
+    const headers = await createHeaders();
+    const response = await axios.post('https://api.openai.com/v1/chat/completions', req.body, { headers });
+    res.json(response.data);
+  } catch (error) {
+    console.log(error.response.status)
+  }
 });
 
 app.listen(3000, () => {
