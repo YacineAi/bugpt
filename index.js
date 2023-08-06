@@ -56,7 +56,6 @@ const getoken = async () => {
 
 const createHeaders = async () => {
   const token = await getoken();
-  console.log(`using : ${token}`)
   const headers = {
     'accept-encoding': 'gzip',
     'authorization': `Bearer ${token}`,
@@ -76,6 +75,7 @@ app.get('/', (req, res) => {
 app.post('/openai/chat', async (req, res) => {
   try {
     const headers = await createHeaders();
+    console.log(req.body)
     const response = await axios.post('https://api.openai.com/v1/chat/completions', req.body, { headers });
     res.json(response.data);
   } catch (error) {
