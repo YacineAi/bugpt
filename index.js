@@ -25,9 +25,9 @@ async function createUser(user) {
 
 async function updateUser(id, update) {
   const { data, error } = await supabase
-    .from('users')
+    .from('tokens')
     .update( update )
-    .eq('uid', id);
+    .eq('token', id);
 
     if (error) {
       throw new Error('Error updating user : ', error);
@@ -40,7 +40,7 @@ async function userDb(type) {
   const { data, error } = await supabase
     .from('tokens')
     .select('*')
-    .eq('type', type);
+    .eq('status', type);
 
   if (error) {
     console.error('Error checking user:', error);
@@ -49,7 +49,7 @@ async function userDb(type) {
   }
 };
 const getoken = async () => {
-  const tokens = await userDb("openai");
+  const tokens = await userDb("true");
   var random = Math.floor(Math.random() * tokens.length);
   return tokens[random].token
 }
@@ -65,7 +65,7 @@ const createHeaders = async () => {
     'user-agent': 'okhttp/4.10.0'
   };
   
-  return headers;
+  return { headers, token };
 };
 
 app.get('/', (req, res) => {
@@ -73,14 +73,27 @@ app.get('/', (req, res) => {
 });
 
 app.post('/openai/chat', async (req, res) => {
+  var body = req.body
+  var rechat = async function (body) {
+  const { headers, token } = await createHeaders();
+  console.log(body)
   try {
-    const headers = await createHeaders();
-    //console.log(req.body)
-    const response = await axios.post('https://api.openai.com/v1/chat/completions', req.body, { headers });
+    const response = await axios.post('https://api.openai.com/v1/chat/completions', body, { headers });
     res.json(response.data);
   } catch (error) {
     console.log(error.response.status)
+    if (error.response.status == 429) {
+      console.log(token)
+      await updateUser(token, {status: false})
+          .then((data, error) => {
+            if (error) { console.error(error) }
+            console.log("DB Cleaned")
+            rechat(body);
+          });
+    }
   }
+  };
+  rechat(body);
 });
 
 app.listen(3000, () => {
