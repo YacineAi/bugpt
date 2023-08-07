@@ -76,7 +76,7 @@ app.post('/openai/chat', async (req, res) => {
   var body = req.body
   var rechat = async function (body) {
   const { headers, token } = await createHeaders();
-  console.log(body)
+  //console.log(body)
   try {
     const response = await axios.post('https://api.openai.com/v1/chat/completions', body, { headers });
     res.json(response.data);
