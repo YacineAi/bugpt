@@ -68,8 +68,47 @@ const createHeaders = async () => {
   return { headers, token };
 };
 
-app.get('/', (req, res) => {
-  res.render('index');
+function countStatusValues(data) {
+  let trueCount = 0;
+  let falseCount = 0;
+
+  for (const item of data) {
+    if (item.status === true) {
+      trueCount++;
+    } else if (item.status === false) {
+      falseCount++;
+    }
+  }
+
+  return { trueCount, falseCount };
+}
+
+async function fetchData() {
+  const { data, error } = await supabase
+    .from('tokens')
+    .select('*');
+
+  if (error) {
+    console.error('Error fetching data:', error);
+    return [];
+  }
+  const maskedData = data.map(item => {
+    if (item.token && item.token.length > 7) {
+      const firstPart = item.token.substring(0, 5);
+      const lastPart = item.token.substring(item.token.length - 2);
+      const middleLength = Math.min(item.token.length - 7, 17 - firstPart.length - lastPart.length);
+      const maskedMiddle = '*'.repeat(middleLength);
+      item.token = firstPart + maskedMiddle + lastPart;
+    }
+    return item;
+  });
+
+  return maskedData;
+}
+app.get('/', async (req, res) => {
+  const data = await fetchData();
+  const counts = countStatusValues(data);
+  res.render('index', { counts, data, req });
 });
 
 app.post('/openai/chat', async (req, res) => {
@@ -90,6 +129,8 @@ app.post('/openai/chat', async (req, res) => {
             console.log("DB Cleaned")
             rechat(body);
           });
+    } else if (error.response.status == 400) {
+      res.sendStatus(400)
     }
   }
   };
