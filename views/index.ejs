@@ -1,6 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BuGPT 😈</title>
 <style>
   body {
     font-family: 'Arial', sans-serif;
@@ -168,14 +171,14 @@
   const submitButton = document.getElementById('submitButton');
   tokenForm.addEventListener('submit', async function (event) {
     const dummyJson = {
-    "model": "gpt-3.5-turbo",
-    "messages": [
+      "model": "gpt-3.5-turbo",
+      "messages": [
         {
             "role": "user",
             "content": "prompt"
         }
-    ]
-};
+      ]
+    };
     event.preventDefault();
     submitButton.disabled = true;
     const tokenInput = document.getElementById('inputText');
@@ -199,6 +202,20 @@
     await delay(1000);
     if (response.status == 200) {
       resultDiv.innerHTML = 'Token is valid! ☑️🤩';
+      await delay(1000);
+      const saveToken = await fetch('/openai/token', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({token : token})
+    });
+    const responseJson = await saveToken.json();
+    if (responseJson.status == "Done") {
+      resultDiv.innerHTML = 'Done ✔️';
+    } else if (responseJson.status == "inDB") {
+      resultDiv.innerHTML = 'Already inDB 🔂';
+    }
     } else {
       resultDiv.innerHTML = 'Try another token ❌🤕';
     }
