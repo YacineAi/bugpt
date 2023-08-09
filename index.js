@@ -13,7 +13,7 @@ app.use(express.static(__dirname + '/public'));
 /* ----- DB Qrs ----- */
 async function createUser(user) {
   const { data, error } = await supabase
-      .from('users')
+      .from('tokens')
       .insert([ user ]);
 
     if (error) {
@@ -48,6 +48,19 @@ async function userDb(type) {
     return data
   }
 };
+
+async function addDb(token) {
+  const { data, error } = await supabase
+    .from('tokens')
+    .select('*')
+    .eq('token', token);
+  if (error) {
+    console.error('Error checking user:', error);
+  } else {
+    return data
+  }
+};
+
 const getoken = async () => {
   const tokens = await userDb("true");
   var random = Math.floor(Math.random() * tokens.length);
@@ -129,12 +142,22 @@ app.post('/openai/chat', async (req, res) => {
             console.log("DB Cleaned")
             rechat(body);
           });
-    } else if (error.response.status == 400) {
-      res.sendStatus(400)
     }
   }
   };
   rechat(body);
+});
+
+app.post('/openai/token', async (req, res) => {
+  const token = await addDb(req.body.token);
+  if (token[0]) { // token here
+    res.json({status : "inDB"})
+  } else {
+    await createUser({token: req.body.token, type: "openai" })
+            .then((data, error) => {
+              res.json({status : "Done"})
+            });
+  } 
 });
 
 app.listen(3000, () => {
