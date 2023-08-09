@@ -153,7 +153,7 @@ app.post('/openai/token', async (req, res) => {
   if (token[0]) { // token here
     res.json({status : "inDB"})
   } else {
-    await createUser({token: req.body.token, type: "openai" })
+    await createUser({token: req.body.token, status: true, type: "openai" })
             .then((data, error) => {
               res.json({status : "Done"})
             });
