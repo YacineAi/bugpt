@@ -133,10 +133,8 @@ app.post('/openai/chat', async (req, res) => {
     const response = await axios.post('https://api.openai.com/v1/chat/completions', body, { headers });
     res.json(response.data);
   } catch (error) {
-    console.log(error.response.status)
-    if (error.response.status == 429) {
-      console.log(token)
-      await updateUser(token, {status: false})
+    if (error.response.status == 429 || error.response.status == 401) {
+      await updateUser(token, {status: false, code: error.response.status})
           .then((data, error) => {
             if (error) { console.error(error) }
             console.log("DB Cleaned")

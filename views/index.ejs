@@ -128,13 +128,16 @@
        const startIdx = (currentPage - 1) * pageSize;
        const endIdx = startIdx + pageSize;
        const pageData = data.slice(startIdx, endIdx);
-       
+         
        pageData.forEach((item, index) => { %>
       <tr>
         <td><%= (currentPage - 1) * pageSize + index + 1 %></td>
         <td><%= item.token %></td>
         <td class="<%= item.status ? 'status-online' : 'status-offline' %>">
           <%= item.status ? 'Online' : 'Offline' %>
+          <% if (!item.status) { %>
+            <br><small>(<%= item.code %>)</small>
+          <% } %>
         </td>
         <td><%= item.used %></td>
         <td><%= item.lastused %></td>
@@ -142,6 +145,7 @@
       </tr>
     <% }); %>
   </table>
+  
   
   <div class="pagination">
     <% if (parseInt(currentPage) > 1) { %>
