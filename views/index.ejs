@@ -4,99 +4,99 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BuGPT 😈</title>
-<style>
-  body {
-    font-family: 'Arial', sans-serif;
-  }
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+    }
 
-  table {
-    width: 70%;
-    margin: 0 auto;
-    border-collapse: collapse;
-  }
-  
-  th, td {
-    padding: 10px;
-    text-align: center;
-    border: 1px solid black;
-    font-family: 'Courier New', monospace;
-  }
-  .container {
-    text-align: center;
-    font-family: 'Arial', sans-serif;
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-  }
+    table {
+      width: 70%;
+      margin: 0 auto;
+      border-collapse: collapse;
+    }
+    
+    th, td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid black;
+      font-family: 'Courier New', monospace;
+    }
+    .container {
+      text-align: center;
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
 
-  form {
-    text-align: center;
-    width: 45%;
-    margin-left: 9%;
-    font-family: 'Arial', sans-serif;
-  }
-  
-  input[type="text"] {
-    padding: 5px;
-    width: 30%;
-  }
-  
-  input[type="submit"] {
-    padding: 5px 10px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    cursor: pointer;
-  }
+    form {
+      text-align: center;
+      width: 45%;
+      margin-left: 9%;
+      font-family: 'Arial', sans-serif;
+    }
+    
+    input[type="text"] {
+      padding: 5px;
+      width: 30%;
+    }
+    
+    input[type="submit"] {
+      padding: 5px 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
 
-  .status-online {
-    color: green;
-    font-weight: bold;
-  }
-  
-  .status-offline {
-    color: red;
-    font-weight: bold;
-  }
-  .pagination {
-    margin-top: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
+    .status-online {
+      color: green;
+      font-weight: bold;
+    }
+    
+    .status-offline {
+      color: red;
+      font-weight: bold;
+    }
+    .pagination {
+      margin-top: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-  .page-link {
-    display: inline-block;
-    padding: 5px 10px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    cursor: pointer;
-    margin: 0 5px;
-  }
-  .page-link.current-page {
-    background-color: red;
-  }
-  #result {
-    margin-left: -100px;
-    font-family: 'Arial', sans-serif;
-    font-size: 14px;
-    text-align: left;
-    border: 1px solid #ccc;
-    padding: 5px;
-  }
-  .status {
-    margin-left: 20px;
-  }
-  footer {
-    text-align: center; 
-    position: fixed; 
-    bottom: 0; 
-    width: 100%; 
-    padding: 10px;
-    padding-bottom: 20px;
-  }
-</style>
+    .page-link {
+      display: inline-block;
+      padding: 5px 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin: 0 5px;
+    }
+    .page-link.current-page {
+      background-color: red;
+    }
+    #result {
+      margin-left: -100px;
+      font-family: 'Arial', sans-serif;
+      font-size: 14px;
+      text-align: left;
+      border: 1px solid #ccc;
+      padding: 5px;
+    }
+    .status {
+      margin-left: 20px;
+    }
+    footer {
+      text-align: center; 
+      position: fixed; 
+      bottom: 0; 
+      width: 100%; 
+      padding: 10px;
+      padding-bottom: 20px;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -107,9 +107,9 @@
     </form>
     <div id="result" style="display: none;"></div>
     <div class="status">
-      <span>🌐 All : <%= data.length %> |</span>
-      <span>✅ Online : <%= counts.trueCount %> |</span>
-      <span>⛔ Offline : <%= counts.falseCount %></span>
+      <span>🌐 All : <span id="totalTokens"></span> |</span>
+      <span>✅ Online : <span id="onlineCount"></span> |</span>
+      <span>⛔ Offline : <span id="offlineCount"></span></span>
     </div>
   </div>
 
@@ -124,11 +124,11 @@
     </tr>
     <% const pageSize = 10;
        const totalPages = Math.ceil(data.length / pageSize);
-       const currentPage = req.query.page || 1;
+       const currentPage = new URLSearchParams(window.location.search).get('page') || 1;
        const startIdx = (currentPage - 1) * pageSize;
        const endIdx = startIdx + pageSize;
        const pageData = data.slice(startIdx, endIdx);
-         
+          
        pageData.forEach((item, index) => { %>
       <tr>
         <td><%= (currentPage - 1) * pageSize + index + 1 %></td>
@@ -167,81 +167,88 @@
   </footer>
 
   <script>
-  function navigateToPage(page) {
-  window.location.href = `/?page=${page}`;
-}
+    function navigateToPage(page) {
+      window.location.href = `?page=${page}`;
+    }
 
-const tokenForm = document.getElementById('tokenForm');
-const resultDiv = document.getElementById('result');
-const submitButton = document.getElementById('submitButton');
+    const tokenForm = document.getElementById('tokenForm');
+    const resultDiv = document.getElementById('result');
+    const submitButton = document.getElementById('submitButton');
+    const totalTokensSpan = document.getElementById('totalTokens');
+    const onlineCountSpan = document.getElementById('onlineCount');
+    const offlineCountSpan = document.getElementById('offlineCount');
 
-tokenForm.addEventListener('submit', async function (event) {
-  const dummyJson = {
-    "model": "gpt-3.5-turbo",
-    "messages": [
-      {
-        "role": "user",
-        "content": "prompt"
+    tokenForm.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      submitButton.disabled = true;
+
+      const tokens = document.getElementById('inputText').value.split('\n').map(token => token.trim()).filter(token => token !== '');
+      const totalTokens = tokens.length;
+      let processedTokens = 0;
+      let onlineCount = 0;
+      let offlineCount = 0;
+
+      for (const token of tokens) {
+        processedTokens++;
+        resultDiv.innerHTML = `Processing token ${processedTokens}/${totalTokens}... 💻`;
+        resultDiv.style.display = 'block';
+        await delay(1000);
+
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'accept-encoding': 'gzip',
+            'authorization': token,
+            'connection': 'Keep-Alive',
+            'content-type': 'application/json; charset=UTF-8',
+            'host': 'api.openai.com',
+            'user-agent': 'okhttp/4.10.0'
+          },
+          body: JSON.stringify({
+            "model": "gpt-3.5-turbo",
+            "messages": [{
+              "role": "user",
+              "content": "prompt"
+            }]
+          })
+        });
+
+        resultDiv.innerHTML = `Testing token ${processedTokens}/${totalTokens}... 🔍`;
+        await delay(1000);
+
+        if (response.status === 200) {
+          onlineCount++;
+          resultDiv.innerHTML = `Token ${processedTokens}/${totalTokens} is valid! ☑️🤩`;
+          await delay(1000);
+          const saveToken = await fetch('/openai/token', {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json'
+            },
+            body: JSON.stringify({ token: token })
+          });
+
+          const responseJson = await saveToken.json();
+          if (responseJson.status === "Done") {
+            resultDiv.innerHTML = `Done with token ${processedTokens}/${totalTokens} ✔️`;
+          } else if (responseJson.status === "inDB") {
+            resultDiv.innerHTML = `Token ${processedTokens}/${totalTokens} already inDB 🔂`;
+          }
+        } else {
+          offlineCount++;
+          resultDiv.innerHTML = `Token ${processedTokens}/${totalTokens} failed. Try another token ❌🤕`;
+        }
       }
-    ]
-  };
+      totalTokensSpan.textContent = totalTokens;
+      onlineCountSpan.textContent = onlineCount;
+      offlineCountSpan.textContent = offlineCount;
 
-  event.preventDefault();
-  submitButton.disabled = true;
-
-  const tokens = document.getElementById('inputText').value;
-  const totalTokens = tokens.length;
-  let processedTokens = 0;
-
-  tokens.forEach(async token => {
-    processedTokens++;
-    resultDiv.innerHTML = `Processing token ${processedTokens}/${totalTokens}... 💻`;
-    resultDiv.style.display = 'block';
-    await delay(1000);
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'accept-encoding': 'gzip',
-        'authorization': token,
-        'connection': 'Keep-Alive',
-        'content-type': 'application/json; charset=UTF-8',
-        'host': 'api.openai.com',
-        'user-agent': 'okhttp/4.10.0'
-      },
-      body: JSON.stringify(dummyJson)
+      submitButton.disabled = false;
     });
 
-    resultDiv.innerHTML = `Testing token ${processedTokens}/${totalTokens}... 🔍`;
-    await delay(1000);
-
-    if (response.status === 200) {
-      resultDiv.innerHTML = `Token ${processedTokens}/${totalTokens} is valid! ☑️🤩`;
-      await delay(1000);
-      const saveToken = await fetch('/openai/token', {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json'
-        },
-        body: JSON.stringify({ token: token })
-      });
-
-      const responseJson = await saveToken.json();
-      if (responseJson.status === "Done") {
-        resultDiv.innerHTML = `Done with token ${processedTokens}/${totalTokens} ✔️`;
-      } else if (responseJson.status === "inDB") {
-        resultDiv.innerHTML = `Token ${processedTokens}/${totalTokens} already inDB 🔂`;
-      }
-    } else {
-      resultDiv.innerHTML = `Token ${processedTokens}/${totalTokens} failed. Try another token ❌🤕`;
+    function delay(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
     }
-  });
-  submitButton.disabled = false;
-});
-
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
   </script>
 </body>
 </html>
