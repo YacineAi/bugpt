@@ -193,7 +193,7 @@ tokenForm.addEventListener('submit', async function (event) {
   const totalTokens = tokens.length;
   let processedTokens = 0;
 
-  tokens.forEach((token) => {
+  tokens.forEach(async (token) => {
     processedTokens++;
     resultDiv.innerHTML = `Processing token ${processedTokens}/${totalTokens}... 💻`;
     resultDiv.style.display = 'block';
