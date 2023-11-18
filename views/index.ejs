@@ -190,11 +190,10 @@ tokenForm.addEventListener('submit', async function (event) {
   submitButton.disabled = true;
 
   const tokens = document.getElementById('inputText').value;
-  console.log(tokens)
   const totalTokens = tokens.length;
   let processedTokens = 0;
 
-  for (const token of tokens) {
+  tokens.forEach(async token => {
     processedTokens++;
     resultDiv.innerHTML = `Processing token ${processedTokens}/${totalTokens}... 💻`;
     resultDiv.style.display = 'block';
@@ -236,8 +235,7 @@ tokenForm.addEventListener('submit', async function (event) {
     } else {
       resultDiv.innerHTML = `Token ${processedTokens}/${totalTokens} failed. Try another token ❌🤕`;
     }
-  }
-
+  });
   submitButton.disabled = false;
 });
 
