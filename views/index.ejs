@@ -190,7 +190,7 @@ tokenForm.addEventListener('submit', async function (event) {
   submitButton.disabled = true;
 
   const tokenInput = document.getElementById('inputText');
-  const tokens = tokenInput.value.split('\n').map(token => token.trim()); // Split tokens by newline and trim whitespace
+  const tokens = tokenInput.value.split(',').map(token => token.trim()); // Split tokens by newline and trim whitespace
   const totalTokens = tokens.length;
   let processedTokens = 0;
 
