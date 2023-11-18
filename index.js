@@ -1,247 +1,163 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BuGPT 😈</title>
-<style>
-  body {
-    font-family: 'Arial', sans-serif;
-  }
+const express = require('express');
+const bodyParser = require('body-parser');
+const fs = require('fs');
+const axios = require('axios');
+const app = express();
+const { createClient } = require('@supabase/supabase-js');
+const supabase = createClient(process.env.SB_URL, process.env.SB_KEY, { auth: { persistSession: false} });
+app.set('view engine', 'ejs');
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static(__dirname + '/public'));
 
-  table {
-    width: 70%;
-    margin: 0 auto;
-    border-collapse: collapse;
-  }
-  
-  th, td {
-    padding: 10px;
-    text-align: center;
-    border: 1px solid black;
-    font-family: 'Courier New', monospace;
-  }
-  .container {
-    text-align: center;
-    font-family: 'Arial', sans-serif;
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-  }
+/* ----- DB Qrs ----- */
+async function createUser(user) {
+  const { data, error } = await supabase
+      .from('tokens')
+      .insert([ user ]);
 
-  form {
-    text-align: center;
-    width: 45%;
-    margin-left: 9%;
-    font-family: 'Arial', sans-serif;
-  }
-  
-  input[type="text"] {
-    padding: 5px;
-    width: 30%;
-  }
-  
-  input[type="submit"] {
-    padding: 5px 10px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    cursor: pointer;
-  }
+    if (error) {
+      throw new Error('Error creating user : ', error);
+    } else {
+      return data
+    }
+};
 
-  .status-online {
-    color: green;
-    font-weight: bold;
-  }
-  
-  .status-offline {
-    color: red;
-    font-weight: bold;
-  }
-  .pagination {
-    margin-top: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
+async function updateUser(id, update) {
+  const { data, error } = await supabase
+    .from('tokens')
+    .update( update )
+    .eq('token', id);
 
-  .page-link {
-    display: inline-block;
-    padding: 5px 10px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    cursor: pointer;
-    margin: 0 5px;
-  }
-  .page-link.current-page {
-    background-color: red;
-  }
-  #result {
-    margin-left: -100px;
-    font-family: 'Arial', sans-serif;
-    font-size: 14px;
-    text-align: left;
-    border: 1px solid #ccc;
-    padding: 5px;
-  }
-  .status {
-    margin-left: 20px;
-  }
-  footer {
-    text-align: center; 
-    position: fixed; 
-    bottom: 0; 
-    width: 100%; 
-    padding: 10px;
-    padding-bottom: 20px;
-  }
-</style>
-</head>
-<body>
-  <div class="container">
-    <form id="tokenForm">
-      <label for="inputText">Enter token 💜 :</label>
-      <input type="text" id="inputText" name="inputText">
-      <input type="submit" value="Submit" id="submitButton">
-    </form>
-    <div id="result" style="display: none;"></div>
-    <div class="status">
-      <span>🌐 All : <%= data.length %> |</span>
-      <span>✅ Online : <%= counts.trueCount %> |</span>
-      <span>⛔ Offline : <%= counts.falseCount %></span>
-    </div>
-  </div>
+    if (error) {
+      throw new Error('Error updating user : ', error);
+    } else {
+      return data
+    }
+};
 
-  <table>
-    <tr>
-      <th>#</th>
-      <th>token 🔑</th>
-      <th>status 🤔</th>
-      <th>used 📲</th>
-      <th>lastused 🕑</th>
-      <th>type 🤖</th>
-    </tr>
-    <% const pageSize = 10;
-       const totalPages = Math.ceil(data.length / pageSize);
-       const currentPage = req.query.page || 1;
-       const startIdx = (currentPage - 1) * pageSize;
-       const endIdx = startIdx + pageSize;
-       const pageData = data.slice(startIdx, endIdx);
-         
-       pageData.forEach((item, index) => { %>
-      <tr>
-        <td><%= (currentPage - 1) * pageSize + index + 1 %></td>
-        <td><%= item.token %></td>
-        <td class="<%= item.status ? 'status-online' : 'status-offline' %>">
-          <%= item.status ? 'Online' : 'Offline' %>
-          <% if (!item.status) { %>
-            <br><small>(<%= item.code %>)</small>
-          <% } %>
-        </td>
-        <td><%= item.used %></td>
-        <td><%= item.lastused %></td>
-        <td><%= item.type %></td>
-      </tr>
-    <% }); %>
-  </table>
-  
-  
-  <div class="pagination">
-    <% if (parseInt(currentPage) > 1) { %>
-      <span class="page-link" onclick="navigateToPage(<%= parseInt(currentPage) - 1 %>)"><</span>
-    <% } %>
-    <% for (let i = 1; i <= totalPages; i++) { %>
-      <span
-      class="page-link <%= parseInt(currentPage) === i ? 'current-page' : '' %>"
-      onclick="navigateToPage(<%= i %>)"
-    ><%= i %></span>
-    <% } %>
-    <% if (parseInt(currentPage) < totalPages) { %>
-      <span class="page-link next-page" onclick="navigateToPage(<%= parseInt(currentPage) + 1 %>)">&gt;</span>
-    <% } %>
-  </div>
+async function userDb(type) {
+  const { data, error } = await supabase
+    .from('tokens')
+    .select('*')
+    .eq('status', type);
 
-  <footer>
-    Made with ❤️ in Algeria 🌙
-  </footer>
+  if (error) {
+    console.error('Error checking user:', error);
+  } else {
+    return data
+  }
+};
 
-  <script>
-  function navigateToPage(page) {
-  window.location.href = `/?page=${page}`;
+async function addDb(token) {
+  const { data, error } = await supabase
+    .from('tokens')
+    .select('*')
+    .eq('token', token);
+  if (error) {
+    console.error('Error checking user:', error);
+  } else {
+    return data
+  }
+};
+
+const getoken = async () => {
+  const tokens = await userDb("true");
+  var random = Math.floor(Math.random() * tokens.length);
+  return tokens[random].token
 }
 
-const tokenForm = document.getElementById('tokenForm');
-const resultDiv = document.getElementById('result');
-const submitButton = document.getElementById('submitButton');
-
-tokenForm.addEventListener('submit', async function (event) {
-  const dummyJson = {
-    "model": "gpt-3.5-turbo",
-    "messages": [
-      {
-        "role": "user",
-        "content": "prompt"
-      }
-    ]
+const createHeaders = async () => {
+  const token = await getoken();
+  const headers = {
+    'accept-encoding': 'gzip',
+    'authorization': `Bearer ${token}`,
+    'connection': 'Keep-Alive',
+    'content-type': 'application/json; charset=UTF-8',
+    'host': 'api.openai.com',
+    'user-agent': 'okhttp/4.10.0'
   };
+  
+  return { headers, token };
+};
 
-  event.preventDefault();
-  submitButton.disabled = true;
-  const inputValue = document.getElementById('inputText').value;
-  const tokens = inputValue.split('\n').map(token => token.trim()).filter(token => token !== '');
-  const totalTokens = tokens.length;
-  let processedTokens = 0;
+function countStatusValues(data) {
+  let trueCount = 0;
+  let falseCount = 0;
 
-  tokens.forEach((token) => {
-    processedTokens++;
-    resultDiv.innerHTML = `Processing token ${processedTokens}/${totalTokens}... 💻`;
-    resultDiv.style.display = 'block';
-    await delay(1000);
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'accept-encoding': 'gzip',
-        'authorization': token,
-        'connection': 'Keep-Alive',
-        'content-type': 'application/json; charset=UTF-8',
-        'host': 'api.openai.com',
-        'user-agent': 'okhttp/4.10.0'
-      },
-      body: JSON.stringify(dummyJson)
-    });
-
-    resultDiv.innerHTML = `Testing token ${processedTokens}/${totalTokens}... 🔍`;
-    await delay(1000);
-
-    if (response.status === 200) {
-      resultDiv.innerHTML = `Token ${processedTokens}/${totalTokens} is valid! ☑️🤩`;
-      await delay(1000);
-      const saveToken = await fetch('/openai/token', {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json'
-        },
-        body: JSON.stringify({ token: token })
-      });
-
-      const responseJson = await saveToken.json();
-      if (responseJson.status === "Done") {
-        resultDiv.innerHTML = `Done with token ${processedTokens}/${totalTokens} ✔️`;
-      } else if (responseJson.status === "inDB") {
-        resultDiv.innerHTML = `Token ${processedTokens}/${totalTokens} already inDB 🔂`;
-      }
-    } else {
-      resultDiv.innerHTML = `Token ${processedTokens}/${totalTokens} failed. Try another token ❌🤕`;
+  for (const item of data) {
+    if (item.status === true) {
+      trueCount++;
+    } else if (item.status === false) {
+      falseCount++;
     }
+  }
+
+  return { trueCount, falseCount };
+}
+
+async function fetchData() {
+  const { data, error } = await supabase
+    .from('tokens')
+    .select('*');
+
+  if (error) {
+    console.error('Error fetching data:', error);
+    return [];
+  }
+  const maskedData = data.map(item => {
+    if (item.token && item.token.length > 7) {
+      const firstPart = item.token.substring(0, 5);
+      const lastPart = item.token.substring(item.token.length - 2);
+      const middleLength = Math.min(item.token.length - 7, 17 - firstPart.length - lastPart.length);
+      const maskedMiddle = '*'.repeat(middleLength);
+      item.token = firstPart + maskedMiddle + lastPart;
+    }
+    return item;
   });
-  submitButton.disabled = false;
+
+  return maskedData;
+}
+app.get('/', async (req, res) => {
+  const data = await fetchData();
+  const counts = countStatusValues(data);
+  res.render('index', { counts, data, req });
 });
 
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-  </script>
-</body>
-</html>
+app.post('/openai/chat', async (req, res) => {
+  var body = req.body
+  var rechat = async function (body) {
+  const { headers, token } = await createHeaders();
+  //console.log(body)
+  try {
+    const response = await axios.post('https://api.openai.com/v1/chat/completions', body, { headers });
+    res.json(response.data);
+  } catch (error) {
+    if (error.response.status == 429 || error.response.status == 401) {
+      await updateUser(token, {status: false, code: error.response.status})
+          .then((data, error) => {
+            if (error) { console.error(error) }
+            console.log("DB Cleaned")
+            rechat(body);
+          });
+    }
+  }
+  };
+  rechat(body);
+});
+
+app.post('/openai/token', async (req, res) => {
+  const token = await addDb(req.body.token);
+  if (token[0]) { // token here
+    res.json({status : "inDB"})
+  } else {
+    await createUser({token: req.body.token, status: true, type: "openai" })
+            .then((data, error) => {
+              res.json({status : "Done"})
+            });
+  } 
+});
+
+app.listen(3000, () => {
+  console.log(`Server is running on 3000`);
+});
