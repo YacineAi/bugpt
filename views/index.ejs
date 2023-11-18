@@ -168,42 +168,33 @@
 
   <script>
   function navigateToPage(page) {
-  window.location.href = `/?page=${page}`;
-}
-
-const tokenForm = document.getElementById('tokenForm');
-const resultDiv = document.getElementById('result');
-const submitButton = document.getElementById('submitButton');
-
-tokenForm.addEventListener('submit', async function (event) {
-  const dummyJson = {
-    "model": "gpt-3.5-turbo",
-    "messages": [
-      {
-        "role": "user",
-        "content": "prompt"
-      }
-    ]
-  };
-
-  event.preventDefault();
-  submitButton.disabled = true;
-  const inputValue = document.getElementById('inputText').value;
-  const tokens = inputValue.split('\n').map(token => token.trim()).filter(token => token !== '');
-  const totalTokens = tokens.length;
-  let processedTokens = 0;
-
-  tokens.forEach(async (token) => {
-    processedTokens++;
-    resultDiv.innerHTML = `Processing token ${processedTokens}/${totalTokens}... 💻`;
+    window.location.href = `/?page=${page}`;
+  }
+  const tokenForm = document.getElementById('tokenForm');
+  const resultDiv = document.getElementById('result');
+  const submitButton = document.getElementById('submitButton');
+  tokenForm.addEventListener('submit', async function (event) {
+    const dummyJson = {
+      "model": "gpt-3.5-turbo",
+      "messages": [
+        {
+            "role": "user",
+            "content": "prompt"
+        }
+      ]
+    };
+    event.preventDefault();
+    submitButton.disabled = true;
+    const tokenInput = document.getElementById('inputText');
+    const token = tokenInput.value;
+    resultDiv.innerHTML = 'Checking token... 💻';
     resultDiv.style.display = 'block';
     await delay(1000);
-
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'accept-encoding': 'gzip',
-        'authorization': token,
+        'authorization': `Bearer ${token}`,
         'connection': 'Keep-Alive',
         'content-type': 'application/json; charset=UTF-8',
         'host': 'api.openai.com',
@@ -211,37 +202,32 @@ tokenForm.addEventListener('submit', async function (event) {
       },
       body: JSON.stringify(dummyJson)
     });
-
-    resultDiv.innerHTML = `Testing token ${processedTokens}/${totalTokens}... 🔍`;
+    resultDiv.innerHTML = `Testing token... 🔍`;
     await delay(1000);
-
-    if (response.status === 200) {
-      resultDiv.innerHTML = `Token ${processedTokens}/${totalTokens} is valid! ☑️🤩`;
+    if (response.status == 200) {
+      resultDiv.innerHTML = 'Token is valid! ☑️🤩';
       await delay(1000);
       const saveToken = await fetch('/openai/token', {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json'
-        },
-        body: JSON.stringify({ token: token })
-      });
-
-      const responseJson = await saveToken.json();
-      if (responseJson.status === "Done") {
-        resultDiv.innerHTML = `Done with token ${processedTokens}/${totalTokens} ✔️`;
-      } else if (responseJson.status === "inDB") {
-        resultDiv.innerHTML = `Token ${processedTokens}/${totalTokens} already inDB 🔂`;
-      }
-    } else {
-      resultDiv.innerHTML = `Token ${processedTokens}/${totalTokens} failed. Try another token ❌🤕`;
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({token : token})
+    });
+    const responseJson = await saveToken.json();
+    if (responseJson.status == "Done") {
+      resultDiv.innerHTML = 'Done ✔️';
+    } else if (responseJson.status == "inDB") {
+      resultDiv.innerHTML = 'Already inDB 🔂';
     }
+    } else {
+      resultDiv.innerHTML = 'Try another token ❌🤕';
+    }
+    submitButton.disabled = false;
   });
-  submitButton.disabled = false;
-});
-
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+  function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
   </script>
 </body>
 </html>
