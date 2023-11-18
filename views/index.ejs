@@ -189,7 +189,8 @@ tokenForm.addEventListener('submit', async function (event) {
   event.preventDefault();
   submitButton.disabled = true;
 
-  const tokens = document.getElementById('inputText');
+  const tokensInput = document.getElementById('inputText').value; // Get the value of the input field
+  const tokens = tokensInput.split('\n').map(token => token.trim()); // Split by newline and trim whitespace
   const totalTokens = tokens.length;
   let processedTokens = 0;
 
@@ -203,7 +204,7 @@ tokenForm.addEventListener('submit', async function (event) {
       method: 'POST',
       headers: {
         'accept-encoding': 'gzip',
-        'authorization': `Bearer ${token}`,
+        'authorization': `${token}`, // No need for 'Bearer' prefix here if it's already included in each token
         'connection': 'Keep-Alive',
         'content-type': 'application/json; charset=UTF-8',
         'host': 'api.openai.com',
