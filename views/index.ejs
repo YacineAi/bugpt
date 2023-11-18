@@ -189,8 +189,7 @@ tokenForm.addEventListener('submit', async function (event) {
   event.preventDefault();
   submitButton.disabled = true;
 
-  const tokensInput = document.getElementById('inputText').value; // Get the value of the input field
-  const tokens = tokensInput.split('\n').map(token => token.trim()); // Split by newline and trim whitespace
+  const tokens = document.getElementById('inputText').value; // Get the value of the input field
   const totalTokens = tokens.length;
   let processedTokens = 0;
 
